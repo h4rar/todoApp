@@ -188,8 +188,8 @@ class MainActivity : AppCompatActivity() {
                 if (position >= 0) {
                     val tabData = adapter.getTabAt(position)
                     MaterialAlertDialogBuilder(this)
-                        .setTitle("Удалить вкладку")
-                        .setMessage("Вы уверены, что хотите удалить вкладку \"${tabData.name}\"? Все заметки в этой вкладке также будут удалены.")
+                        .setTitle("Delete Tab")
+                        .setMessage("Are you sure you want to delete the \"${tabData.name}\" tab? All notes in this tab will also be deleted.")
                         .setPositiveButton("OK") { _, _ ->
                             CoroutineScope(Dispatchers.IO).launch {
                                 repository.deleteTab(tabData)

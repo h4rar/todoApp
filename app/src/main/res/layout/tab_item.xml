@@ -13,29 +13,33 @@
         android:textSize="14sp"
         app:layout_constraintEnd_toStartOf="@id/editTabIcon"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
 
     <ImageView
         android:id="@+id/editTabIcon"
         android:layout_width="20dp"
-        android:layout_height="20dp"
+        android:layout_height="0dp"
+        android:background="@drawable/edit_tab_button_background"
         android:contentDescription="Edit tab"
-        android:src="@android:drawable/ic_menu_edit"
+        android:src="@drawable/ic_edit_small"
         android:visibility="gone"
+        android:scaleType="center"
         app:layout_constraintEnd_toStartOf="@id/deleteTabIcon"
         app:layout_constraintTop_toTopOf="parent"
-        app:tint="@color/white"
-        />
+        app:layout_constraintBottom_toBottomOf="parent" />
 
     <ImageView
         android:id="@+id/deleteTabIcon"
         android:layout_width="20dp"
-        android:layout_height="20dp"
+        android:layout_height="0dp"
+        android:background="@drawable/delete_tab_button_background"
         android:contentDescription="Delete tab"
-        android:src="@android:drawable/ic_menu_delete"
+        android:src="@drawable/ic_delete_small"
         android:visibility="gone"
+        android:scaleType="center"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:tint="@color/white" />
+        app:layout_constraintBottom_toBottomOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
