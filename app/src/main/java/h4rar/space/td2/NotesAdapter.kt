@@ -8,6 +8,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -66,9 +67,16 @@ class NotesAdapter(
         }
 
         holder.deleteNoteIcon.setOnClickListener {
-            CoroutineScope(Dispatchers.IO).launch {
-                repository.deleteNote(note)
-            }
+            MaterialAlertDialogBuilder(holder.itemView.context)
+                .setTitle("Delete note")
+                .setMessage("Are you sure you want to delete this note?")
+                .setPositiveButton("Ok") { _, _ ->
+                    CoroutineScope(Dispatchers.IO).launch {
+                        repository.deleteNote(note)
+                    }
+                }
+                .setNegativeButton("Cancel", null)
+                .show()
         }
 
         holder.editNoteIcon.setOnClickListener {

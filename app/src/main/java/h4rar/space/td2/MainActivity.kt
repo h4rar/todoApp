@@ -186,20 +186,27 @@ class MainActivity : AppCompatActivity() {
             deleteTabIcon?.setOnClickListener {
                 val position = tab?.position ?: return@setOnClickListener
                 if (position >= 0) {
-                    CoroutineScope(Dispatchers.IO).launch {
-                        val tabData = adapter.getTabAt(position)
-                        repository.deleteTab(tabData)
-                        runOnUiThread {
-                            isLongPressed = false
-                            updateTabIcons()
-                            updateTabStyles()
-                            // Переключаемся на предыдущую вкладку, если удалена текущая
-                            val newPosition = if (position > 0) position - 1 else 0
-                            if (adapter.itemCount > 0) {
-                                viewPager.setCurrentItem(newPosition, true)
+                    val tabData = adapter.getTabAt(position)
+                    MaterialAlertDialogBuilder(this)
+                        .setTitle("Удалить вкладку")
+                        .setMessage("Вы уверены, что хотите удалить вкладку \"${tabData.name}\"? Все заметки в этой вкладке также будут удалены.")
+                        .setPositiveButton("OK") { _, _ ->
+                            CoroutineScope(Dispatchers.IO).launch {
+                                repository.deleteTab(tabData)
+                                runOnUiThread {
+                                    isLongPressed = false
+                                    updateTabIcons()
+                                    updateTabStyles()
+                                    // Переключаемся на предыдущую вкладку, если удалена текущая
+                                    val newPosition = if (position > 0) position - 1 else 0
+                                    if (adapter.itemCount > 0) {
+                                        viewPager.setCurrentItem(newPosition, true)
+                                    }
+                                }
                             }
                         }
-                    }
+                        .setNegativeButton("Отмена", null)
+                        .show()
                 }
             }
 
