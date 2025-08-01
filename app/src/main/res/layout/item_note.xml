@@ -19,6 +19,7 @@
         android:textAlignment="center"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@id/editNoteIcon" />
 
     <ImageView
@@ -30,6 +31,7 @@
         android:contentDescription="Edit note"
         app:tint="@color/white"
         app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@id/deleteNoteIcon" />
 
     <ImageView
@@ -41,6 +43,7 @@
         android:contentDescription="Delete note"
         app:tint="@color/white"
         app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
