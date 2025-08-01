@@ -36,12 +36,48 @@ class NotesFragment : Fragment() {
     ): View? {
         val view = inflater.inflate(R.layout.fragment_notes, container, false)
         val recyclerView = view.findViewById<RecyclerView>(R.id.notesRecyclerView)
+        val fragmentRoot = view.findViewById<View>(R.id.fragmentRoot)
 
         recyclerView.layoutManager = LinearLayoutManager(context)
         notesAdapter = NotesAdapter(repository, isNoteLongPressed) { note ->
             showEditNoteDialog(note)
         }
         recyclerView.adapter = notesAdapter
+
+        // Простой обработчик нажатия на RecyclerView для скрытия кнопок
+        recyclerView.setOnClickListener {
+            if (isNoteLongPressed) {
+                isNoteLongPressed = false
+                notesAdapter.setLongPressed(false)
+            }
+        }
+
+        // Обработчик нажатия на корневой view фрагмента для скрытия кнопок
+        fragmentRoot.setOnClickListener {
+            if (isNoteLongPressed) {
+                isNoteLongPressed = false
+                notesAdapter.setLongPressed(false)
+            }
+        }
+
+        // Обработчик нажатия на корневой view для скрытия кнопок
+        view.setOnClickListener {
+            if (isNoteLongPressed) {
+                isNoteLongPressed = false
+                notesAdapter.setLongPressed(false)
+            }
+        }
+
+        // TouchListener для более надежного скрытия кнопок
+        view.setOnTouchListener { _, event ->
+            if (event.action == android.view.MotionEvent.ACTION_DOWN) {
+                if (isNoteLongPressed) {
+                    isNoteLongPressed = false
+                    notesAdapter.setLongPressed(false)
+                }
+            }
+            false // Позволяем событию продолжить обработку
+        }
 
         CoroutineScope(Dispatchers.Main).launch {
             repository.getNotesByTab(tabId).collect { notes ->

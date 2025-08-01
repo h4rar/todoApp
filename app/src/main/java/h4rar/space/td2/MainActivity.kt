@@ -25,6 +25,61 @@ class MainActivity : AppCompatActivity() {
     private var tabLayoutMediator: TabLayoutMediator? = null
     private var isLongPressed = false
 
+    override fun dispatchTouchEvent(ev: android.view.MotionEvent?): Boolean {
+        if (ev?.action == android.view.MotionEvent.ACTION_DOWN) {
+            // Проверяем, что нажатие не на кнопки вкладок
+            val tabLayout = findViewById<TabLayout>(R.id.tabLayout)
+            val viewPager = findViewById<androidx.viewpager2.widget.ViewPager2>(R.id.viewPager)
+            
+            // Получаем координаты нажатия
+            val x = ev.x
+            val y = ev.y
+            
+            // Проверяем, что нажатие не на TabLayout (где находятся кнопки вкладок)
+            val tabLayoutLocation = IntArray(2)
+            tabLayout.getLocationOnScreen(tabLayoutLocation)
+            val tabLayoutLeft = tabLayoutLocation[0]
+            val tabLayoutTop = tabLayoutLocation[1]
+            val tabLayoutRight = tabLayoutLeft + tabLayout.width
+            val tabLayoutBottom = tabLayoutTop + tabLayout.height
+            
+            // Если нажатие не на TabLayout, скрываем кнопки
+            if (x < tabLayoutLeft || x > tabLayoutRight || y < tabLayoutTop || y > tabLayoutBottom) {
+                // Проверяем, что нажатие не на кнопки добавления
+                val addTabButton = findViewById<android.widget.ImageButton>(R.id.addTabButton)
+                val addNoteButton = findViewById<com.google.android.material.button.MaterialButton>(R.id.addNoteButton)
+                
+                val addTabLocation = IntArray(2)
+                addTabButton.getLocationOnScreen(addTabLocation)
+                val addTabLeft = addTabLocation[0]
+                val addTabTop = addTabLocation[1]
+                val addTabRight = addTabLeft + addTabButton.width
+                val addTabBottom = addTabTop + addTabButton.height
+                
+                val addNoteLocation = IntArray(2)
+                addNoteButton.getLocationOnScreen(addNoteLocation)
+                val addNoteLeft = addNoteLocation[0]
+                val addNoteTop = addNoteLocation[1]
+                val addNoteRight = addNoteLeft + addNoteButton.width
+                val addNoteBottom = addNoteTop + addNoteButton.height
+                
+                // Если нажатие не на кнопки добавления, скрываем кнопки
+                if ((x < addTabLeft || x > addTabRight || y < addTabTop || y > addTabBottom) &&
+                    (x < addNoteLeft || x > addNoteRight || y < addNoteTop || y > addNoteBottom)) {
+                    // Скрываем кнопки вкладок при нажатии на пустую область
+                    if (isLongPressed) {
+                        isLongPressed = false
+                        updateTabIcons()
+                    }
+                    // Сбрасываем режим долгого нажатия для заметок
+                    val currentTabPosition = viewPager.currentItem
+                    adapter.getFragmentAt(currentTabPosition)?.resetLongPressMode()
+                }
+            }
+        }
+        return super.dispatchTouchEvent(ev)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         supportActionBar?.hide()
@@ -43,6 +98,20 @@ class MainActivity : AppCompatActivity() {
 
         adapter = TabsAdapter(this, repository)
         viewPager.adapter = adapter
+
+        // Обработчик перелистывания ViewPager для скрытия кнопок
+        viewPager.registerOnPageChangeCallback(object : androidx.viewpager2.widget.ViewPager2.OnPageChangeCallback() {
+            override fun onPageSelected(position: Int) {
+                super.onPageSelected(position)
+                // Скрываем кнопки при перелистывании вкладок
+                if (isLongPressed) {
+                    isLongPressed = false
+                    updateTabIcons()
+                }
+                // Сбрасываем режим долгого нажатия для заметок
+                adapter.getFragmentAt(position)?.resetLongPressMode()
+            }
+        })
 
         // Настройка кастомных вкладок
         setupTabLayoutMediator(tabLayout, viewPager)
@@ -70,6 +139,14 @@ class MainActivity : AppCompatActivity() {
         tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
             override fun onTabSelected(tab: TabLayout.Tab?) {
                 updateTabStyles()
+                // Скрываем кнопки при переключении вкладок
+                if (isLongPressed) {
+                    isLongPressed = false
+                    updateTabIcons()
+                }
+                // Сбрасываем режим долгого нажатия для заметок
+                val currentTabPosition = viewPager.currentItem
+                adapter.getFragmentAt(currentTabPosition)?.resetLongPressMode()
             }
 
             override fun onTabUnselected(tab: TabLayout.Tab?) {
@@ -81,11 +158,28 @@ class MainActivity : AppCompatActivity() {
 
         // Обработчик нажатия на кнопку добавления вкладки
         addTabButton.setOnClickListener {
+            // Скрываем кнопки при нажатии на кнопку добавления вкладки
+            if (isLongPressed) {
+                isLongPressed = false
+                updateTabIcons()
+            }
+            // Сбрасываем режим долгого нажатия для заметок
+            val currentTabPosition = viewPager.currentItem
+            adapter.getFragmentAt(currentTabPosition)?.resetLongPressMode()
             showAddTabDialog()
         }
 
         // Обработчик нажатия на кнопку добавления заметки
         addNoteButton.setOnClickListener {
+            // Скрываем кнопки при нажатии на кнопку добавления заметки
+            if (isLongPressed) {
+                isLongPressed = false
+                updateTabIcons()
+            }
+            // Сбрасываем режим долгого нажатия для заметок
+            val currentTabPosition = viewPager.currentItem
+            adapter.getFragmentAt(currentTabPosition)?.resetLongPressMode()
+            
             val currentPosition = viewPager.currentItem
             if (adapter.itemCount > 0) {
                 val currentTab = adapter.getTabAt(currentPosition)
@@ -98,6 +192,78 @@ class MainActivity : AppCompatActivity() {
                     .setPositiveButton("OK", null)
                     .show()
             }
+        }
+
+        // Обработчик нажатия на основную область экрана для скрытия кнопок
+        findViewById<View>(android.R.id.content).setOnClickListener {
+            if (isLongPressed) {
+                isLongPressed = false
+                updateTabIcons()
+            }
+            // Сбрасываем режим долгого нажатия для заметок
+            val currentTabPosition = viewPager.currentItem
+            adapter.getFragmentAt(currentTabPosition)?.resetLongPressMode()
+        }
+
+        // Обработчик нажатия на корневой layout для скрытия кнопок
+        findViewById<androidx.constraintlayout.widget.ConstraintLayout>(R.id.mainLayout).setOnClickListener {
+            if (isLongPressed) {
+                isLongPressed = false
+                updateTabIcons()
+            }
+            // Сбрасываем режим долгого нажатия для заметок
+            val currentTabPosition = viewPager.currentItem
+            adapter.getFragmentAt(currentTabPosition)?.resetLongPressMode()
+        }
+
+        // Обработчик нажатия на ViewPager2 для скрытия кнопок
+        viewPager.setOnClickListener {
+            if (isLongPressed) {
+                isLongPressed = false
+                updateTabIcons()
+            }
+            // Сбрасываем режим долгого нажатия для заметок
+            val currentTabPosition = viewPager.currentItem
+            adapter.getFragmentAt(currentTabPosition)?.resetLongPressMode()
+        }
+
+        // Обработчик нажатия на пустую область ViewPager2
+        viewPager.setOnTouchListener { _, event ->
+            if (event.action == android.view.MotionEvent.ACTION_DOWN) {
+                if (isLongPressed) {
+                    isLongPressed = false
+                    updateTabIcons()
+                }
+                // Сбрасываем режим долгого нажатия для заметок
+                val currentTabPosition = viewPager.currentItem
+                adapter.getFragmentAt(currentTabPosition)?.resetLongPressMode()
+            }
+            false // Позволяем событию продолжить обработку
+        }
+
+        // Обработчик нажатия на TabLayout для скрытия кнопок
+        tabLayout.setOnClickListener {
+            if (isLongPressed) {
+                isLongPressed = false
+                updateTabIcons()
+            }
+            // Сбрасываем режим долгого нажатия для заметок
+            val currentTabPosition = viewPager.currentItem
+            adapter.getFragmentAt(currentTabPosition)?.resetLongPressMode()
+        }
+
+        // TouchListener на корневой layout для скрытия кнопок
+        findViewById<androidx.constraintlayout.widget.ConstraintLayout>(R.id.mainLayout).setOnTouchListener { _, event ->
+            if (event.action == android.view.MotionEvent.ACTION_DOWN) {
+                if (isLongPressed) {
+                    isLongPressed = false
+                    updateTabIcons()
+                }
+                // Сбрасываем режим долгого нажатия для заметок
+                val currentTabPosition = viewPager.currentItem
+                adapter.getFragmentAt(currentTabPosition)?.resetLongPressMode()
+            }
+            false // Позволяем событию продолжить обработку
         }
 
         // Обработчик нажатия кнопки "Назад"
