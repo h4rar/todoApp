@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface NoteDao {
-    @Query("SELECT * FROM notes WHERE tabId = :tabId")
+    @Query("SELECT * FROM notes WHERE tabId = :tabId ORDER BY position ASC")
     fun getNotesByTab(tabId: Int): Flow<List<Note>>
 
     @Insert
@@ -20,4 +20,13 @@ interface NoteDao {
 
     @Delete
     suspend fun delete(note: Note)
+
+    @Query("UPDATE notes SET position = :newPosition WHERE id = :noteId")
+    suspend fun updatePosition(noteId: Int, newPosition: Int)
+
+    @Query("UPDATE notes SET position = position + 1 WHERE tabId = :tabId AND position >= :fromPosition")
+    suspend fun shiftPositionsUp(tabId: Int, fromPosition: Int)
+
+    @Query("UPDATE notes SET position = position - 1 WHERE tabId = :tabId AND position > :fromPosition")
+    suspend fun shiftPositionsDown(tabId: Int, fromPosition: Int)
 }

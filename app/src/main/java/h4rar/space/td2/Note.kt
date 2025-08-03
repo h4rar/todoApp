@@ -17,5 +17,6 @@ data class Note(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val text: String,
     val isCompleted: Boolean = false,
-    val tabId: Int
+    val tabId: Int,
+    val position: Int = 0
 )

@@ -2,11 +2,13 @@ package h4rar.space.td2
 
 import android.graphics.Paint
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.core.content.ContextCompat
+import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.CoroutineScope
@@ -20,11 +22,15 @@ class NotesAdapter(
 ) : RecyclerView.Adapter<NotesAdapter.NoteViewHolder>() {
 
     private var notes: List<Note> = emptyList()
+    private var itemTouchHelper: ItemTouchHelper? = null
+    private var originalPosition: Int = -1
+    private var currentPosition: Int = -1
 
     class NoteViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val noteText: TextView = itemView.findViewById(R.id.noteText)
         val editNoteIcon: ImageView = itemView.findViewById(R.id.editNoteIcon)
         val deleteNoteIcon: ImageView = itemView.findViewById(R.id.deleteNoteIcon)
+        val dragHandle: ImageView = itemView.findViewById(R.id.dragHandle)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): NoteViewHolder {
@@ -47,6 +53,15 @@ class NotesAdapter(
 
         holder.editNoteIcon.visibility = if (isLongPressed) View.VISIBLE else View.GONE
         holder.deleteNoteIcon.visibility = if (isLongPressed) View.VISIBLE else View.GONE
+        holder.dragHandle.visibility = if (isLongPressed) View.VISIBLE else View.GONE
+
+        // Настройка drag handle для начала перетаскивания
+        holder.dragHandle.setOnTouchListener { _, event ->
+            if (event.action == MotionEvent.ACTION_DOWN) {
+                itemTouchHelper?.startDrag(holder)
+            }
+            false
+        }
 
         holder.itemView.setOnLongClickListener {
             isLongPressed = !isLongPressed
@@ -94,5 +109,51 @@ class NotesAdapter(
     fun setLongPressed(longPressed: Boolean) {
         isLongPressed = longPressed
         notifyDataSetChanged()
+    }
+
+    fun setItemTouchHelper(touchHelper: ItemTouchHelper) {
+        itemTouchHelper = touchHelper
+    }
+
+    fun onItemMove(fromPosition: Int, toPosition: Int) {
+        if (fromPosition < 0 || toPosition < 0 || fromPosition >= notes.size || toPosition >= notes.size) {
+            return
+        }
+        
+        // Если это первое перемещение, запоминаем исходную позицию
+        if (originalPosition == -1) {
+            originalPosition = fromPosition
+        }
+        
+        currentPosition = toPosition
+        
+        // Просто перемещаем элемент в списке для отображения
+        val movedNote = notes[fromPosition]
+        val updatedNotes = notes.toMutableList()
+        updatedNotes.removeAt(fromPosition)
+        updatedNotes.add(toPosition, movedNote)
+        notes = updatedNotes
+        
+        notifyItemMoved(fromPosition, toPosition)
+    }
+    
+    fun onItemDrop() {
+        if (originalPosition != -1 && currentPosition != -1 && originalPosition != currentPosition) {
+            // Обновляем позиции всех элементов
+            val updatedNotes = notes.toMutableList()
+            for (i in updatedNotes.indices) {
+                updatedNotes[i] = updatedNotes[i].copy(position = i)
+            }
+            notes = updatedNotes
+            
+            // Сохраняем все позиции в БД асинхронно
+            CoroutineScope(Dispatchers.IO).launch {
+                repository.updateMultipleNotePositions(notes)
+            }
+        }
+        
+        // Сбрасываем позиции
+        originalPosition = -1
+        currentPosition = -1
     }
 }

@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -18,6 +19,7 @@ class NotesFragment : Fragment() {
     private lateinit var repository: NotesRepository
     private var isNoteLongPressed = false
     private lateinit var notesAdapter: NotesAdapter
+    private lateinit var itemTouchHelper: ItemTouchHelper
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -43,6 +45,48 @@ class NotesFragment : Fragment() {
             showEditNoteDialog(note)
         }
         recyclerView.adapter = notesAdapter
+
+        // Настройка ItemTouchHelper для drag & drop
+        val callback = object : ItemTouchHelper.SimpleCallback(
+            ItemTouchHelper.UP or ItemTouchHelper.DOWN, 0
+        ) {
+            override fun onMove(
+                recyclerView: RecyclerView,
+                viewHolder: RecyclerView.ViewHolder,
+                target: RecyclerView.ViewHolder
+            ): Boolean {
+                val fromPosition = viewHolder.bindingAdapterPosition
+                val toPosition = target.bindingAdapterPosition
+                
+                // Проверяем, что позиции валидны
+                if (fromPosition == RecyclerView.NO_POSITION || toPosition == RecyclerView.NO_POSITION) {
+                    return false
+                }
+                
+                notesAdapter.onItemMove(fromPosition, toPosition)
+                return true
+            }
+
+            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+                // Не используется
+            }
+            
+            override fun isLongPressDragEnabled(): Boolean {
+                return false // Отключаем автоматическое перетаскивание по долгому нажатию
+            }
+            
+            override fun onSelectedChanged(viewHolder: RecyclerView.ViewHolder?, actionState: Int) {
+                super.onSelectedChanged(viewHolder, actionState)
+                if (actionState == ItemTouchHelper.ACTION_STATE_IDLE) {
+                    // Перетаскивание завершено
+                    notesAdapter.onItemDrop()
+                }
+            }
+        }
+        
+        itemTouchHelper = ItemTouchHelper(callback)
+        itemTouchHelper.attachToRecyclerView(recyclerView)
+        notesAdapter.setItemTouchHelper(itemTouchHelper)
 
         // Простой обработчик нажатия на RecyclerView для скрытия кнопок
         recyclerView.setOnClickListener {

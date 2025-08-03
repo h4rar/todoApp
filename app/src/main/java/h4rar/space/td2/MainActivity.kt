@@ -17,6 +17,7 @@ import com.google.android.material.textfield.TextInputEditText
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.first
 
 class MainActivity : AppCompatActivity() {
     private lateinit var repository: NotesRepository
@@ -88,7 +89,7 @@ class MainActivity : AppCompatActivity() {
         db = Room.databaseBuilder(
             applicationContext,
             NotesDatabase::class.java, "notes_database"
-        ).build()
+        ).addMigrations(NotesDatabase.MIGRATION_1_2).build()
         repository = NotesRepository(db.tabDao(), db.noteDao())
 
         val viewPager = findViewById<androidx.viewpager2.widget.ViewPager2>(R.id.viewPager)
@@ -440,7 +441,10 @@ class MainActivity : AppCompatActivity() {
                 val noteText = editText.text.toString().trim()
                 if (noteText.isNotEmpty()) {
                     CoroutineScope(Dispatchers.IO).launch {
-                        repository.insertNote(Note(text = noteText, tabId = tabId))
+                        // Получаем количество заметок в текущей вкладке для определения позиции
+                        val notes = repository.getNotesByTab(tabId).first()
+                        val newPosition = notes.size
+                        repository.insertNote(Note(text = noteText, tabId = tabId, position = newPosition))
                     }
                 }
             }

@@ -17,4 +17,14 @@ class NotesRepository(
     suspend fun insertNote(note: Note) = noteDao.insert(note)
     suspend fun updateNote(note: Note) = noteDao.update(note)
     suspend fun deleteNote(note: Note) = noteDao.delete(note)
+    
+    suspend fun updateNotePosition(noteId: Int, newPosition: Int) = noteDao.updatePosition(noteId, newPosition)
+    suspend fun shiftPositionsUp(tabId: Int, fromPosition: Int) = noteDao.shiftPositionsUp(tabId, fromPosition)
+    suspend fun shiftPositionsDown(tabId: Int, fromPosition: Int) = noteDao.shiftPositionsDown(tabId, fromPosition)
+    
+    suspend fun updateMultipleNotePositions(notes: List<Note>) {
+        notes.forEach { note ->
+            noteDao.updatePosition(note.id, note.position)
+        }
+    }
 }
