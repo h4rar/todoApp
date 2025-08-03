@@ -9,7 +9,7 @@
         android:id="@+id/tabNameInputLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Tab Name"
+        android:hint="Tab name"
         android:layout_marginBottom="16dp"
         app:layout_constraintTop_toTopOf="parent">
 

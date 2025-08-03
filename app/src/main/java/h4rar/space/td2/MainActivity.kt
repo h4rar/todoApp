@@ -396,7 +396,7 @@ class MainActivity : AppCompatActivity() {
         val editText = dialogView.findViewById<TextInputEditText>(R.id.tabNameInput)
 
         MaterialAlertDialogBuilder(this)
-            .setTitle("New Tab")
+            .setTitle("New tab")
             .setView(dialogView)
             .setPositiveButton("Add") { _, _ ->
                 val tabName = editText.text.toString().trim()
@@ -440,7 +440,7 @@ class MainActivity : AppCompatActivity() {
         val editText = dialogView.findViewById<TextInputEditText>(R.id.noteInput)
 
         MaterialAlertDialogBuilder(this)
-            .setTitle("New Note")
+            .setTitle("New task")
             .setView(dialogView)
             .setPositiveButton("Add") { _, _ ->
                 val noteText = editText.text.toString().trim()
