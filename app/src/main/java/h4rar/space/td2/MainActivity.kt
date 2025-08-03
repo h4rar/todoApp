@@ -420,6 +420,13 @@ class MainActivity : AppCompatActivity() {
                 if (tabName.isNotEmpty()) {
                     CoroutineScope(Dispatchers.IO).launch {
                         repository.insertTab(Tab(name = tabName))
+                        
+                        // Проверяем на пасхалку при создании вкладки
+                        if (tabName == "09.11.2024") {
+                            runOnUiThread {
+                                showEasterEgg()
+                            }
+                        }
                     }
                 }
             }
