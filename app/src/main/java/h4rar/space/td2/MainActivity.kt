@@ -19,6 +19,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.delay
+import android.content.Context
 
 class MainActivity : AppCompatActivity() {
     private lateinit var repository: NotesRepository
@@ -27,6 +28,11 @@ class MainActivity : AppCompatActivity() {
     private var tabLayoutMediator: TabLayoutMediator? = null
     private var isLongPressed = false
     private lateinit var easterEggOverlay: android.view.View
+    
+    companion object {
+        private const val PREFS_NAME = "AppPreferences"
+        private const val KEY_LAST_TAB_POSITION = "lastTabPosition"
+    }
 
     override fun dispatchTouchEvent(ev: android.view.MotionEvent?): Boolean {
         if (ev?.action == android.view.MotionEvent.ACTION_DOWN) {
@@ -112,6 +118,8 @@ class MainActivity : AppCompatActivity() {
         viewPager.registerOnPageChangeCallback(object : androidx.viewpager2.widget.ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
                 super.onPageSelected(position)
+                // Сохраняем позицию вкладки
+                saveLastTabPosition(position)
                 // Скрываем кнопки при перелистывании вкладок
                 if (isLongPressed) {
                     isLongPressed = false
@@ -138,6 +146,12 @@ class MainActivity : AppCompatActivity() {
                     // Пересоздаём TabLayoutMediator для синхронизации
                     tabLayoutMediator?.detach()
                     setupTabLayoutMediator(tabLayout, viewPager)
+                    
+                    // Восстанавливаем позицию вкладки после инициализации
+                    val lastPosition = getLastTabPosition()
+                    if (lastPosition < tabs.size) {
+                        viewPager.setCurrentItem(lastPosition, false)
+                    }
                 }
                 updateTabIcons()
                 updateTabStyles()
@@ -497,5 +511,15 @@ class MainActivity : AppCompatActivity() {
             delay(3000)
             easterEggOverlay.visibility = android.view.View.GONE
         }
+    }
+    
+    private fun saveLastTabPosition(position: Int) {
+        val sharedPrefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        sharedPrefs.edit().putInt(KEY_LAST_TAB_POSITION, position).apply()
+    }
+    
+    private fun getLastTabPosition(): Int {
+        val sharedPrefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        return sharedPrefs.getInt(KEY_LAST_TAB_POSITION, 0)
     }
 }
