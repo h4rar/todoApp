@@ -27,5 +27,14 @@ abstract class NotesDatabase : RoomDatabase() {
                 """)
             }
         }
+        
+        // Callback для инициализации данных при первом запуске
+        val DATABASE_CALLBACK = object : RoomDatabase.Callback() {
+            override fun onCreate(db: SupportSQLiteDatabase) {
+                super.onCreate(db)
+                // Этот метод вызывается только при первом создании базы данных
+                // Инициализация будет выполнена в MainActivity
+            }
+        }
     }
 }

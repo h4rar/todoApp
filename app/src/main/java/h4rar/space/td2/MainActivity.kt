@@ -89,8 +89,13 @@ class MainActivity : AppCompatActivity() {
         db = Room.databaseBuilder(
             applicationContext,
             NotesDatabase::class.java, "notes_database"
-        ).addMigrations(NotesDatabase.MIGRATION_1_2).build()
+        ).addMigrations(NotesDatabase.MIGRATION_1_2)
+         .addCallback(NotesDatabase.DATABASE_CALLBACK)
+         .build()
         repository = NotesRepository(db.tabDao(), db.noteDao())
+        
+        // Инициализируем данные при первом запуске
+        initializeDefaultData()
 
         val viewPager = findViewById<androidx.viewpager2.widget.ViewPager2>(R.id.viewPager)
         val tabLayout = findViewById<TabLayout>(R.id.tabLayout)
@@ -455,5 +460,21 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         tabLayoutMediator?.detach()
+    }
+    
+    private fun initializeDefaultData() {
+        CoroutineScope(Dispatchers.IO).launch {
+            // Проверяем, есть ли уже вкладки в базе данных
+            val existingTabs = repository.allTabs.first()
+            
+            // Если вкладок нет, создаем вкладки по умолчанию
+            if (existingTabs.isEmpty()) {
+                val homeTab = Tab(name = "Home")
+                val workTab = Tab(name = "Work")
+                
+                repository.insertTab(homeTab)
+                repository.insertTab(workTab)
+            }
+        }
     }
 }
