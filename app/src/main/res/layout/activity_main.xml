@@ -58,4 +58,11 @@
         app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toStartOf="parent" />
 
+    <!-- Пасхалка overlay -->
+    <include
+        android:id="@+id/easterEggOverlay"
+        layout="@layout/easter_egg_overlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

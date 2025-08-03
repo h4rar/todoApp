@@ -18,6 +18,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.delay
 
 class MainActivity : AppCompatActivity() {
     private lateinit var repository: NotesRepository
@@ -25,6 +26,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var adapter: TabsAdapter
     private var tabLayoutMediator: TabLayoutMediator? = null
     private var isLongPressed = false
+    private lateinit var easterEggOverlay: android.view.View
 
     override fun dispatchTouchEvent(ev: android.view.MotionEvent?): Boolean {
         if (ev?.action == android.view.MotionEvent.ACTION_DOWN) {
@@ -101,6 +103,7 @@ class MainActivity : AppCompatActivity() {
         val tabLayout = findViewById<TabLayout>(R.id.tabLayout)
         val addTabButton = findViewById<android.widget.ImageButton>(R.id.addTabButton)
         val addNoteButton = findViewById<com.google.android.material.button.MaterialButton>(R.id.addNoteButton)
+        easterEggOverlay = findViewById(R.id.easterEggOverlay)
 
         adapter = TabsAdapter(this, repository)
         viewPager.adapter = adapter
@@ -450,6 +453,13 @@ class MainActivity : AppCompatActivity() {
                         val notes = repository.getNotesByTab(tabId).first()
                         val newPosition = notes.size
                         repository.insertNote(Note(text = noteText, tabId = tabId, position = newPosition))
+                        
+                        // Проверяем на пасхалку
+                        if (noteText == "09.11.2024") {
+                            runOnUiThread {
+                                showEasterEgg()
+                            }
+                        }
                     }
                 }
             }
@@ -475,6 +485,17 @@ class MainActivity : AppCompatActivity() {
                 repository.insertTab(homeTab)
                 repository.insertTab(workTab)
             }
+        }
+    }
+    
+    private fun showEasterEgg() {
+        // Показываем пасхалку
+        easterEggOverlay.visibility = android.view.View.VISIBLE
+        
+        // Скрываем через 3 секунды
+        CoroutineScope(Dispatchers.Main).launch {
+            delay(3000)
+            easterEggOverlay.visibility = android.view.View.GONE
         }
     }
 }
