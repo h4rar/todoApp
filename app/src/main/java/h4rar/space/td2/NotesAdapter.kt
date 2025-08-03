@@ -25,6 +25,7 @@ class NotesAdapter(
     private var itemTouchHelper: ItemTouchHelper? = null
     private var originalPosition: Int = -1
     private var currentPosition: Int = -1
+    private var isNoteLongPressed: Boolean = false
 
     class NoteViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val noteText: TextView = itemView.findViewById(R.id.noteText)
@@ -51,9 +52,9 @@ class NotesAdapter(
             holder.noteText.setTextColor(ContextCompat.getColor(holder.itemView.context, android.R.color.white))
         }
 
-        holder.editNoteIcon.visibility = if (isLongPressed) View.VISIBLE else View.GONE
-        holder.deleteNoteIcon.visibility = if (isLongPressed) View.VISIBLE else View.GONE
-        holder.dragHandle.visibility = if (isLongPressed) View.VISIBLE else View.GONE
+        holder.editNoteIcon.visibility = if (isNoteLongPressed) View.VISIBLE else View.GONE
+        holder.deleteNoteIcon.visibility = if (isNoteLongPressed) View.VISIBLE else View.GONE
+        holder.dragHandle.visibility = if (isNoteLongPressed) View.VISIBLE else View.GONE
 
         // Настройка drag handle для начала перетаскивания
         holder.dragHandle.setOnTouchListener { _, event ->
@@ -64,14 +65,14 @@ class NotesAdapter(
         }
 
         holder.itemView.setOnLongClickListener {
-            isLongPressed = !isLongPressed
+            isNoteLongPressed = !isNoteLongPressed
             notifyDataSetChanged()
             true
         }
 
         holder.itemView.setOnClickListener {
-            if (isLongPressed) {
-                isLongPressed = false
+            if (isNoteLongPressed) {
+                isNoteLongPressed = false
                 notifyDataSetChanged()
             } else {
                 // Переключаем статус isCompleted
@@ -80,7 +81,12 @@ class NotesAdapter(
                 }
             }
         }
-
+        
+        // Предотвращаем скрытие кнопок при нажатии на сами кнопки
+        holder.editNoteIcon.setOnClickListener {
+            onEditNote(note)
+        }
+        
         holder.deleteNoteIcon.setOnClickListener {
             MaterialAlertDialogBuilder(holder.itemView.context)
                 .setTitle("Delete note")
@@ -93,10 +99,8 @@ class NotesAdapter(
                 .setNegativeButton("Cancel", null)
                 .show()
         }
+        
 
-        holder.editNoteIcon.setOnClickListener {
-            onEditNote(note)
-        }
     }
 
     override fun getItemCount(): Int = notes.size
@@ -107,8 +111,15 @@ class NotesAdapter(
     }
 
     fun setLongPressed(longPressed: Boolean) {
-        isLongPressed = longPressed
+        isNoteLongPressed = longPressed
         notifyDataSetChanged()
+    }
+    
+    fun hideButtons() {
+        if (isNoteLongPressed) {
+            isNoteLongPressed = false
+            notifyDataSetChanged()
+        }
     }
 
     fun setItemTouchHelper(touchHelper: ItemTouchHelper) {

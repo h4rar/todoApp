@@ -88,37 +88,31 @@ class NotesFragment : Fragment() {
         itemTouchHelper.attachToRecyclerView(recyclerView)
         notesAdapter.setItemTouchHelper(itemTouchHelper)
 
-        // Простой обработчик нажатия на RecyclerView для скрытия кнопок
+        // Обработчики нажатий для скрытия кнопок записей
         recyclerView.setOnClickListener {
-            if (isNoteLongPressed) {
-                isNoteLongPressed = false
-                notesAdapter.setLongPressed(false)
-            }
+            notesAdapter.hideButtons()
         }
 
-        // Обработчик нажатия на корневой view фрагмента для скрытия кнопок
         fragmentRoot.setOnClickListener {
-            if (isNoteLongPressed) {
-                isNoteLongPressed = false
-                notesAdapter.setLongPressed(false)
-            }
+            notesAdapter.hideButtons()
         }
 
-        // Обработчик нажатия на корневой view для скрытия кнопок
         view.setOnClickListener {
-            if (isNoteLongPressed) {
-                isNoteLongPressed = false
-                notesAdapter.setLongPressed(false)
-            }
+            notesAdapter.hideButtons()
         }
 
         // TouchListener для более надежного скрытия кнопок
         view.setOnTouchListener { _, event ->
             if (event.action == android.view.MotionEvent.ACTION_DOWN) {
-                if (isNoteLongPressed) {
-                    isNoteLongPressed = false
-                    notesAdapter.setLongPressed(false)
-                }
+                notesAdapter.hideButtons()
+            }
+            false // Позволяем событию продолжить обработку
+        }
+
+        // Обработчик нажатия на пустую область RecyclerView
+        recyclerView.setOnTouchListener { _, event ->
+            if (event.action == android.view.MotionEvent.ACTION_DOWN) {
+                notesAdapter.hideButtons()
             }
             false // Позволяем событию продолжить обработку
         }
@@ -133,10 +127,7 @@ class NotesFragment : Fragment() {
     }
 
     fun resetLongPressMode() {
-        if (isNoteLongPressed) {
-            isNoteLongPressed = false
-            notesAdapter.setLongPressed(false)
-        }
+        notesAdapter.hideButtons()
     }
 
     private fun showEditNoteDialog(note: Note) {
@@ -153,8 +144,7 @@ class NotesFragment : Fragment() {
                     CoroutineScope(Dispatchers.IO).launch {
                         repository.updateNote(note.copy(text = newText))
                         requireActivity().runOnUiThread {
-                            isNoteLongPressed = false
-                            notesAdapter.setLongPressed(false)
+                            notesAdapter.hideButtons()
                         }
                     }
                 }
